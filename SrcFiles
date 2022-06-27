@@ -1,0 +1,5 @@
+main.cpp
+src/processor.cpp
+src/instruction_set.cpp
+src/memory_mapped_io.cpp
+src/memory_tracker.cpp

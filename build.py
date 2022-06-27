@@ -11,7 +11,7 @@ def build(cc, ofile, cflags):
     if not TARGET_DIR.is_dir():
         TARGET_DIR.mkdir()
 
-    run_cmd(f"{cc} main.cpp -o {ofile} {cflags}")
+    run_cmd(f"{cc} @SrcFiles -o {ofile} {cflags}")
 
 def run_cmd(cmd, fail_on_err=True):
     print(f"[RUNNING] {cmd}")
@@ -22,7 +22,6 @@ def run_cmd(cmd, fail_on_err=True):
 run = True
 if "--build-only" in sys.argv:
     run = False
-
 
 prog = "test.bin"
 if "--bin" in sys.argv:
@@ -43,15 +42,14 @@ if "--chasm" in sys.argv:
     cflags += " -L../chasm/target/debug -lchasm"
 
 
-cc = ""
+cc = "clang++"
 ofile = None
+if "g++" in sys.argv:
+    cc = "g++"
+
 if os.name == "nt":
-    cc = "clang++"
     ofile = TARGET_DIR / Path("lc3.exe")
 if os.name == "posix":
-    cc = "g++"
-    if "clang" in sys.argv:
-        cc = "clang++"
     ofile = TARGET_DIR / Path("lc3")
 
 def build_and_run():

@@ -1,22 +1,15 @@
 #ifndef LC_3_PROCESSOR
 #define LC_3_PROCESSOR
+#include <stdint.h>
+#include <stdlib.h>
 
 
+typedef uint16_t word;
+typedef uint8_t  byte;
 
-const char *register_names[] = 
-{
-	  "R0"
-	, "R1"
-	, "R2"
-	, "R3"
-	, "R4"
-	, "R5"
-	, "R6"
-	, "R7"
-};
+extern char const * register_names[];
 
-
-const size_t memory_size = (((uint32_t)1<<16) - 1) * sizeof(uint8_t);
+size_t constexpr memory_size = (((uint32_t)1<<16) - 1) * sizeof(uint8_t);
 
 struct ProcessorState
 {
@@ -36,32 +29,8 @@ struct ProcessorState
 	byte *memory = 0;
 };
 
-void setFlagRegisters(ProcessorState *state, uint16_t result)
-{
-	if(result & 0x8000)
-	{
-		state->status_register.negative = 1;
-		state->status_register.zero     = 0;
-		state->status_register.positive = 0;
-	}else if(result == 0)
-	{
-		state->status_register.negative = 0;
-		state->status_register.zero     = 1;
-		state->status_register.positive = 0;
-	}else if(~result & 0x8000)
-	{
-		state->status_register.negative = 0;
-		state->status_register.zero     = 0;
-		state->status_register.positive = 1;
-	}
-}
+void setFlagRegisters(ProcessorState *state, uint16_t result);
 
-void UB()
-{
-	printf("\nInstruction is not implemented or not defined in the ISA\nExiting\n");
-	exit(404);
-}
-
-
+void UB();
 
 #endif //LC_3_PROCESSOR

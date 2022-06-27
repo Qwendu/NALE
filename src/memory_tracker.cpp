@@ -1,39 +1,28 @@
-#include "processor.hpp"
-#include "Instruction_set.hpp"
-#include <stdint.h>
-#include <stdio.h>
+#include "memory_tracker.hpp"
 
-/* 
-When TRACK_MEMORY is not defined every function 
-in this .cpp file will return 0 in the corresponding type
-*/
-
-
-struct MemoryTracker
-{
-	uint64_t field[memory_size/64 + 1];
-};
+#include <assert.h>
+#include <string.h>
 
 
 MemoryTracker *
 createMemoryTracker()
-#ifdef TRACK_MEMORY
+#if TRACK_MEMORY
 {
 	MemoryTracker *mem = (MemoryTracker *)malloc(sizeof(MemoryTracker));
-	assert(mem != 0);
+	if(!mem) return mem;
 	memset(mem, 0, sizeof(MemoryTracker));
 	return mem;
 }
 #else
 {
-	return 0;
+	return nullptr;
 }
 #endif // TRACK_MEMORY
 
 
 
 void markAddressTouched(MemoryTracker *mem, uint16_t address)
-#ifdef TRACK_MEMORY
+#if TRACK_MEMORY
 {
 	mem->field[address/64] |= 1<<(address%64);
 }
@@ -44,7 +33,7 @@ void markAddressTouched(MemoryTracker *mem, uint16_t address)
 #endif // TRACK_MEMORY
 
 bool getAddressTouched(MemoryTracker *mem, uint16_t address)
-#ifdef TRACK_MEMORY
+#if TRACK_MEMORY
 {
 	bool b = mem->field[address/64] & ((uint64_t)1<<(address%64));
 	return b;
@@ -56,7 +45,7 @@ bool getAddressTouched(MemoryTracker *mem, uint16_t address)
 #endif // TRACK_MEMORY
 
 void markRangeTouched(MemoryTracker *mem, uint16_t address, uint16_t range_exclusive)
-#ifdef TRACK_MEMORY
+#if TRACK_MEMORY
 {
 	for(int i = 0; i < range_exclusive; i++)
 	{
@@ -69,20 +58,14 @@ void markRangeTouched(MemoryTracker *mem, uint16_t address, uint16_t range_exclu
 
 char printable(char ch)
 {
-    if ('A' <= ch && ch <= 'Z') {
-        return ch;
-    }
-    if ('a' <= ch && ch <= 'z') {
-        return ch;
-    }
-    if ('0' <= ch && ch <= '9') {
+    if (('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z') || ('0' <= ch && ch <= '9')) {
         return ch;
     }
     return '.';
 }
 
 void printTouchedMemory(MemoryTracker *mem, byte *base)
-#ifdef TRACK_MEMORY
+#if TRACK_MEMORY
 {
 	printf("MEMORY: ------\n");
 	printf("ADDRESS:\t");
@@ -122,7 +105,7 @@ void printTouchedMemory(MemoryTracker *mem, byte *base)
 #endif
 
 void warnUntouchedMemory(MemoryTracker *mem, uint16_t address)
-#ifdef TRACK_MEMORY
+#if TRACK_MEMORY
 {
 	if(!getAddressTouched(mem, address))
 	{

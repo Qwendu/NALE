@@ -1,3 +1,4 @@
+#include "src/FeatureFlags.hpp"
 #include <cstdio>
 #include <stdio.h>
 #include <stdint.h>
@@ -5,18 +6,16 @@
 #include <assert.h>
 #include <string.h>
 
-#include "src/Instruction_set.hpp"
+#include "src/instruction_set.hpp"
 #include "src/processor.hpp"
-
-#define TRACK_MEMORY // Uncomment this to track the memory of the system
-#include "src/memory_tracker.cpp"
-
+#include "src/memory_tracker.hpp"
 #include "src/cli_mode.hpp"
 
 #define WORD(mem) (*(word *)mem)
 
+
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 1
+#define VERSION_MINOR 2
 
 // 0xa is an undefined Instruction in the LC-3b ISA, 
 // that means if we ever see 0xa in the op code we 
@@ -62,7 +61,7 @@ INSTR_BR_GT:
 		printf("%04x INSTR_BR_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_BR(state);
+		exec_instr_br(state, current_instruction, tracker);
 		next;
 	}
 INSTR_ADD_GT:
@@ -71,7 +70,7 @@ INSTR_ADD_GT:
 		printf("%04x INSTR_ADD_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_ADD(state);
+		exec_instr_add(state, current_instruction, tracker);
 		next;
 	}
 INSTR_LDB_GT:
@@ -80,7 +79,7 @@ INSTR_LDB_GT:
 		printf("%04x INSTR_LDB_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_LDB(state);
+		exec_instr_ldb(state, current_instruction, tracker);
 		next;
 	}
 INSTR_STB_GT:
@@ -89,7 +88,7 @@ INSTR_STB_GT:
 		printf("%04x INSTR_STB_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_STB(state);
+		exec_instr_stb(state, current_instruction, tracker);
 		next;
 	}
 INSTR_JSR_GT:
@@ -98,7 +97,7 @@ INSTR_JSR_GT:
 		printf("%04x INSTR_JSR_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_JSR(state);
+		exec_instr_jsr(state, current_instruction, tracker);
 		next;
 	}
 INSTR_AND_GT:
@@ -107,7 +106,7 @@ INSTR_AND_GT:
 		printf("%04x INSTR_AND_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_AND(state);
+		exec_instr_and(state, current_instruction, tracker);
 		next;
 	}
 INSTR_LDW_GT:
@@ -116,7 +115,7 @@ INSTR_LDW_GT:
 		printf("%04x INSTR_LDW_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_LDW(state);
+		exec_instr_ldw(state, current_instruction, tracker);
 		next;
 	}
 INSTR_STW_GT:
@@ -125,7 +124,7 @@ INSTR_STW_GT:
 		printf("%04x INSTR_STW_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_STW(state);
+		exec_instr_stw(state, current_instruction, tracker);
 		next;
 	}
 INSTR_RTI_GT:
@@ -134,7 +133,7 @@ INSTR_RTI_GT:
 		printf("%04x INSTR_RTI_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_RTI(state);
+		exec_instr_rti(state, current_instruction, tracker);
 		next;
 	}
 INSTR_XOR_GT:
@@ -143,7 +142,7 @@ INSTR_XOR_GT:
 		printf("%04x INSTR_XOR_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_XOR(state);
+		exec_instr_xor(state, current_instruction, tracker);
 		next;
 	}
 INSTR_RES_1_GT:
@@ -153,7 +152,7 @@ INSTR_RES_1_GT:
 #endif //DEBUG_PRINT_GOTO
 
 		inc;
-		EXEC_INSTR_RES_1(state);
+		exec_instr_res_1(state, current_instruction, tracker);
 		return;
 	}
 INSTR_RES_2_GT:
@@ -162,7 +161,7 @@ INSTR_RES_2_GT:
 		printf("%04x INSTR_RES_2_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_RES_2(state);
+		exec_instr_res_2(state, current_instruction, tracker);
 		return;
 	}
 INSTR_JMP_GT:
@@ -171,7 +170,7 @@ INSTR_JMP_GT:
 		printf("%04x INSTR_JMP_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_JMP(state);
+		exec_instr_jmp(state, current_instruction, tracker);
 		next;
 	}
 INSTR_SHF_GT:
@@ -180,7 +179,7 @@ INSTR_SHF_GT:
 		printf("%04x INSTR_SHF_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_SHF(state);
+		exec_instr_shf(state, current_instruction, tracker);
 		next;
 	}
 INSTR_LEA_GT:
@@ -189,7 +188,7 @@ INSTR_LEA_GT:
 		printf("%04x INSTR_LEA_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_LEA(state);
+		exec_instr_lea(state, current_instruction, tracker);
 		next;
 	}
 INSTR_TRAP_GT:
@@ -198,7 +197,7 @@ INSTR_TRAP_GT:
 		printf("%04x INSTR_TRAP_GT\n", state->pc);
 #endif //DEBUG_PRINT_GOTO
 		inc;
-		EXEC_INSTR_TRAP(state);
+		exec_instr_trap(state, current_instruction, tracker);
 		next;
 	}
 	return;
@@ -349,68 +348,68 @@ runInterruptable(ProcessorState *state, MemoryTracker *tracker, FILE *display_ou
 		{
 			break;case INSTR_BR: 
 			{
-				EXEC_INSTR_BR(state);
+				exec_instr_br(state, current_instruction, tracker);
 			}
 			break; case INSTR_ADD:
 			{
-				EXEC_INSTR_ADD(state);
+				exec_instr_add(state, current_instruction, tracker);
 			}
 			break; case INSTR_LDB:
 			{
-				EXEC_INSTR_LDB(state);
+				exec_instr_ldb(state, current_instruction, tracker);
 			}
 			break; case INSTR_STB:
 			{
-				EXEC_INSTR_STB(state);
+				exec_instr_stb(state, current_instruction, tracker);
 			}
 			break; case INSTR_JSR:
 			{
-				EXEC_INSTR_JSR(state);
+				exec_instr_jsr(state, current_instruction, tracker);
 			}
 			break; case INSTR_AND: 
 			{
-				EXEC_INSTR_AND(state);
+				exec_instr_and(state, current_instruction, tracker);
 			}	
 			break; case INSTR_LDW:
 			{
-				EXEC_INSTR_LDW(state);
+				exec_instr_ldw(state, current_instruction, tracker);
 			}
 			break; case INSTR_STW:
 			{
-				EXEC_INSTR_STW(state);
+				exec_instr_stw(state, current_instruction, tracker);
 			}
 			break; case INSTR_RTI:
 			{
-				EXEC_INSTR_RTI(state);
+				exec_instr_rti(state, current_instruction, tracker);
 			}
 			break; case INSTR_XOR:
 			{
-				EXEC_INSTR_XOR(state);
+				exec_instr_xor(state, current_instruction, tracker);
 			}
 			break; case INSTR_RES_1:
 			{
-				EXEC_INSTR_RES_1(state);
+				exec_instr_res_1(state, current_instruction, tracker);
 			}
 			break; case INSTR_RES_2:
 			{
-				EXEC_INSTR_RES_2(state);
+				exec_instr_res_2(state, current_instruction, tracker);
 			}
 			break; case INSTR_JMP:
 			{
-				EXEC_INSTR_JMP(state);
+				exec_instr_jmp(state, current_instruction, tracker);
 			}
 			break; case INSTR_SHF:
 			{
-				EXEC_INSTR_SHF(state);
+				exec_instr_shf(state, current_instruction, tracker);
 			}
 			break; case INSTR_LEA:
 			{
 
-				EXEC_INSTR_LEA(state);
+				exec_instr_lea(state, current_instruction, tracker);
 			}
 			break; case INSTR_TRAP:
 			{
-				EXEC_INSTR_TRAP(state);
+				exec_instr_trap(state, current_instruction, tracker);
 			}
 		}
 

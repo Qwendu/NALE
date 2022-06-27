@@ -1,0 +1,8 @@
+#ifndef FEATURE_FLAGS_H
+#define FEATURE_FLAGS_H
+
+
+#define TRACK_MEMORY 1
+
+
+#endif //FEATURE_FLAGS_H
