@@ -54,6 +54,11 @@ runNonInterruptable(ProcessorState *state, MemoryTracker *tracker, FILE *display
 
 #define next\
 	goto *instr_table[((Instruction *)&state->memory[state->pc])->op_code]
+	{
+		next;
+	}
+
+
 
 INSTR_BR_GT:
 	{
