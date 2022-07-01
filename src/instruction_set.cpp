@@ -116,6 +116,9 @@ void exec_instr_ldw(ProcessorState *pstate, Instruction current_instruction, Mem
 	//assert(!(pstate->registers[l.base_r] & 0b1));
 	uint16_t immediate = (((0x0020 & l.offset_6) ? 0xFFC0 : 0 ) | l.offset_6) << 1;
 	uint16_t address = pstate->registers[l.base_r] + immediate;
+
+	if(address & 0x1) exit(fault_codes[ProcessorState::WORD_ALIGNMENT_FAULT]);
+
 	warnUntouchedMemory(tracker, address);
 	markAddressTouched(tracker, address);
 	word loaded = *(word *)&pstate->memory[address];
@@ -129,6 +132,8 @@ void exec_instr_stw(ProcessorState *pstate, Instruction current_instruction, Mem
 {
 	STW s = *(STW *)&current_instruction;
 	uint16_t address = pstate->registers[s.base_r] + ((((0x0020 & s.offset_6) ? 0xFFC0 : 0x0000) | s.offset_6)<<1);
+	if(address & 0x1) exit(fault_codes[ProcessorState::WORD_ALIGNMENT_FAULT]);
+
 	markAddressTouched(tracker, address);
 	*(word *)&pstate->memory[address] = pstate->registers[s.sr];
 	display(pstate);
@@ -138,11 +143,7 @@ void exec_instr_stw(ProcessorState *pstate, Instruction current_instruction, Mem
 
 void exec_instr_rti(ProcessorState *pstate, Instruction current_instruction, MemoryTracker *tracker)
 {
-	if(pstate->status_register.priviledge_level == 1)
-	{
-		printf("Priviledge mode violationnExiting\n");
-		exit(403);
-	}
+	if(pstate->status_register.priviledge_level == 1) exit(fault_codes[ProcessorState::PRIVILEDGE_MODE_VIOLATION]);
 	pstate->pc = *(word *)&pstate->memory[pstate->registers[0b11]];
 	pstate->registers[0b110] = pstate->registers[0b110] + 2;
 	*(word *)&pstate->status_register = *(word *)&pstate->memory[pstate->registers[0b110]];
@@ -167,17 +168,13 @@ void exec_instr_xor(ProcessorState *pstate, Instruction current_instruction, Mem
 
 void exec_instr_res_1(ProcessorState *pstate, Instruction current_instruction, MemoryTracker *tracker)
 {
-	printf("Op Code: 0x%01x is undefined in the current ISA\nExiting main loop\n", *(uint16_t *)&current_instruction);
-	markRangeTouched(tracker, pstate->pc - 0x100, 0x120);
-	pstate->memory[0xFFFF] &= 0x40;
+	exit(fault_codes[ProcessorState::UNDEFINED_INSTRUCTION]);
 }
 
 
 void exec_instr_res_2(ProcessorState *pstate, Instruction current_instruction, MemoryTracker *tracker)
 {
-	printf("Op Code: 0x%01x is undefined in the current ISA\nExiting main loop\n", *(uint16_t *)&current_instruction);
-	markRangeTouched(tracker, pstate->pc - 0x100, 0x120);
-	pstate->memory[0xFFFF] &= 0x40;
+	exit(fault_codes[ProcessorState::UNDEFINED_INSTRUCTION]);
 }
 
 
