@@ -114,7 +114,7 @@ void exec_instr_ldw(ProcessorState *pstate, Instruction current_instruction, Mem
 {
 	LDW l = *(LDW *)&current_instruction;
 	//assert(!(pstate->registers[l.base_r] & 0b1));
-	uint16_t immediate = (((0x0010 & l.offset_6) ? 0xFFE0 : 0 ) | l.offset_6) << 1;
+	uint16_t immediate = (((0x0020 & l.offset_6) ? 0xFFC0 : 0 ) | l.offset_6) << 1;
 	uint16_t address = pstate->registers[l.base_r] + immediate;
 	warnUntouchedMemory(tracker, address);
 	markAddressTouched(tracker, address);
