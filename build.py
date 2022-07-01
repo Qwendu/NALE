@@ -5,7 +5,7 @@ import sys
 import os
 
 TARGET_DIR = Path("./target")
-cflags = "-g -Wall -Wextra -Wpedantic -Wno-gnu-label-as-value  -Wno-unused-parameter -std=c++20" # If the memory tracker is not defined, then -Wno-unused will flood the console
+cflags = "-g -Wall -Wextra -Wpedantic -Wno-gnu-label-as-value -Wno-c99-extensions -Wno-unused-parameter -std=c++20" # If the memory tracker is not defined, then -Wno-unused will flood the console
 
 def build(cc, ofile, cflags):
     if not TARGET_DIR.is_dir():
